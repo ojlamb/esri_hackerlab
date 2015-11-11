@@ -1,14 +1,15 @@
 var map = L.map('map').setView([45.533, -122.657], 12);
 var layer = L.esri.basemapLayer('Topographic').addTo(map);
 
+var userLocation;
 
 function myFunction(data) {
   map.setView([data.latitude, data.longitude], 18)
   var latlng = L.latLng(data.latitude, data.longitude);
   var marker = L.marker(latlng).addTo(map);
-  marker.bindPopup("You are HERE!").openPopup();
+  userLocation = turf.point(data.latitude, data.longitude);
+  censusLayer.Layer.setStyle(customStyle);
 };
-
 
 
 map.locate();
@@ -17,15 +18,25 @@ map.on('locationfound', myFunction);
 
 var layerLabels;
 
-censusLayer = L.esri.Layers.featureLayer ({
-    url: 'http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/1'
-  }).addTo(map);
+var censusLayer = L.esri.Layers.featureLayer ({
+  url: 'http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/1',
+    style: customStyle(feature)
+}).addTo(map);
 
-console.log(censusLayer);
-
-censusLayer.setStyle({color: 'transparent'});
-
-
+function customStyle(feature){
+  if(userLocation && turf.inside(userLocation, feature) == 1){
+    return {
+      fillOpacity: 0,
+      opacity: 0.5
+    }
+  }
+  else{
+    return {
+      fillOpacity: 0,
+      opacity: 0
+    }
+  }
+}
 
 function setBasemap(basemap) {
   if (layer) {
